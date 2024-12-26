@@ -30,6 +30,7 @@ async function loadRNBOdevice(){
     
     //fetch patcher
     let rawPatcher = await fetch("export/silbatoSampler_v3.export.json");
+    //let rawPatcher = await fetch("export/samplerMAPA_v2.export.json");
     let patcher = await rawPatcher.json();
 
     //call the library
@@ -43,18 +44,19 @@ async function loadRNBOdevice(){
             micdBSpan.html(micdB.toFixed(2));
         }
 
-        // if (event.tag === "out4"){
-        //     noteStatus = event.payload;
-        //     console.log('note ', noteStatus);
+        if (event.tag === "out4"){
+            noteStatus = event.payload;
+            console.log('note ', noteStatus);
             
-        // }
+        }
     });
 
     
    
 
     connectMicrophone(device);
-    device.node.connect(outputNode);
+    // device.node.connect(outputNode);
+    device.node.connect(context.destination);
     
    micGainParam = device.parametersById.get("micGain");
 
@@ -70,12 +72,11 @@ async function loadRNBOdevice(){
 loadRNBOdevice();
 
 function setup() {
-    p5.disableFriendlyErrors = true; // disables FES
     createCanvas(windowWidth, windowHeight);
     margin = windowHeight*0.2;
     buttonSize = windowHeight*0.2;
     separation = windowHeight*0.1;
-    toggle = new Toggle(windowWidth/4, 0.5*margin+buttonSize/2,'muteMic');
+    //toggle = new Toggle(windowWidth/4, 0.5*margin+buttonSize/2,'test');
     buttons[0] = new Button(windowWidth/2, 0.5*margin+buttonSize/2,'lowHighNote');
     buttons[1] = new Button(windowWidth/2, 1.5*margin+buttonSize,'notaBaja');
     buttons[2] = new Button(windowWidth/2, 3.2*margin+buttonSize,'notaAlta');
@@ -135,9 +136,11 @@ function draw() {
         button.isPressed();
         button.sendBang();
     }
-
-    toggle.show();
-    toggle.sendBang();
+    if (toggle){
+      toggle.show();
+      toggle.sendBang();
+    }
+    
 }
 
 function  mouseClicked(){
@@ -241,12 +244,6 @@ class Toggle{
 
 
 //RNBO Functions
-//change value of a parameter
-function setParameterValue(device, paramName, value){
-    const param = device.parametersById.get(paramName);
-    param.value = value;
-  }
-
 async function loadSamples(device,samples){
     for (let id in samples){
         const url = samples[id];
@@ -273,7 +270,7 @@ function connectMicrophone(device){
         const source = context.createMediaStreamSource(stream);
         source.connect(device.node);
     }
-    navigator.mediaDevices.getUserMedia({ audio:  { //para eliminar configuraciones indeseadas
+     navigator.mediaDevices.getUserMedia({ audio:  { //para eliminar configuraciones indeseadas
         echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false
@@ -289,7 +286,7 @@ function sendMessageToInport(message,inportTag){
 function loadSustainLoopPoints(device){
     const lowStart = device.parametersById.get("initSustainGrave");
     lowStart.value = sustainLoopPoints["grave"][0];
-    console.log(lowStart.value);
+    //console.log(lowStart.value);
 
     const lowEnd = device.parametersById.get("endSustainGrave");
     lowEnd.value = sustainLoopPoints["grave"][1];
